@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:swifty_delivery_boy/providers/deliveryBoyProvider.dart';
 import 'package:swifty_delivery_boy/providers/ordersProvider.dart';
@@ -24,6 +25,21 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
+    String getLocationName(int location) {
+      switch (location) {
+        case 1:
+          return 'Kanhar';
+        case 2:
+          return 'Indravati';
+        case 3:
+          return 'MSH';
+        case 4:
+          return 'Delta';
+        default:
+          return 'Unknown Location';
+      }
+    }
+
     DeliveryBoyProvider deliveryBoyProvider =
         context.read<DeliveryBoyProvider>();
     return Scaffold(
@@ -51,96 +67,168 @@ class _HomeState extends State<Home> {
                       itemCount: ordersProvider.orders.length,
                       itemBuilder: (context, index) {
                         return Card(
-                          elevation: 3, // Add elevation for a subtle shadow
-                          margin: EdgeInsets.all(8),
-                          color: Colors.lightBlue[50], // Light blue card color
-                          child: ListTile(
-                            title: Text(
-                              'Order ID: ${ordersProvider.orders[index].orderId}',
-                            ),
-                            subtitle: Column(
+                          elevation: 4,
+                          margin: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          color: Colors.white,
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.location_on_outlined,
+                                            size: 20, color: Colors.grey[600]),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          '${getLocationName(ordersProvider.orders[index].userLocation!)}',
+                                          style: GoogleFonts.roboto(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            color: Colors.grey[800],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      'Rs ${ordersProvider.orders[index].amount}',
+                                      style: GoogleFonts.roboto(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: Colors.grey[800],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 12),
                                 Text(
-                                  'Order Amount: ${ordersProvider.orders[index].amount}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
+                                  'Order ID: ${ordersProvider.orders[index].orderId}',
+                                  style: GoogleFonts.roboto(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
                                   ),
                                 ),
                                 SizedBox(height: 8),
                                 Text(
                                   'Delivery Items:',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                  style: GoogleFonts.roboto(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: Colors.grey[800],
+                                  ),
                                 ),
-                                // Displaying delivery items
+                                SizedBox(height: 4),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: ordersProvider.orders[index].items
                                       .map((item) => Text(
-                                          '${item.name} x ${item.quantity}'))
+                                            '• ${item.name} x ${item.quantity}',
+                                            style: GoogleFonts.roboto(
+                                              fontSize:
+                                                  16, // Increased font size for better readability
+                                              color: Colors.grey[700],
+                                            ),
+                                          ))
                                       .toList(),
                                 ),
-                                SizedBox(height: 8),
-                                Text('Update Order Status:'),
-                                DropdownButton<String>(
-                                  value:
-                                      ordersProvider.orders[index].orderStatus,
-                                  onChanged: (String? newValue) async {
-                                    if (newValue != null) {
-                                      ordersProvider.orders[index].orderStatus =
-                                          newValue;
-                                      ordersProvider.notifyListeners();
+                                SizedBox(height: 6),
+                                Divider(),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.info_outline,
+                                          size: 20,
+                                          color: Colors.grey[600],
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Update Order Status:',
+                                          style: GoogleFonts.roboto(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                            color: Colors.grey[800],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    DropdownButton<String>(
+                                      value: ordersProvider
+                                          .orders[index].orderStatus,
+                                      onChanged: (String? newValue) async {
+                                        if (newValue != null) {
+                                          ordersProvider.orders[index]
+                                              .orderStatus = newValue;
+                                          ordersProvider.notifyListeners();
 
-                                      if (newValue == 'Arrived' ||
-                                          newValue == 'Delivered') {
-                                        String orderId = ordersProvider
-                                            .orders[index].orderId;
-                                        String token =
-                                            Provider.of<DeliveryBoyProvider>(
+                                          if (newValue == 'Arrived' ||
+                                              newValue == 'Delivered') {
+                                            String orderId = ordersProvider
+                                                .orders[index].orderId;
+                                            String token = Provider.of<
+                                                        DeliveryBoyProvider>(
                                                     context,
                                                     listen: false)
                                                 .token;
 
-                                        // Call the UpdateOrderProvider to update the order status
-                                        int responseCode = await Provider.of<
-                                                    UpdateOrderProvider>(
-                                                context,
-                                                listen: false)
-                                            .updateOrder(orderId,
-                                                newValue.toLowerCase(), token);
+                                            int responseCode = await Provider
+                                                    .of<UpdateOrderProvider>(
+                                                        context,
+                                                        listen: false)
+                                                .updateOrder(
+                                                    orderId,
+                                                    newValue.toLowerCase(),
+                                                    token);
 
-                                        // Show Snackbar based on the response code
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          SnackBar(
-                                            content: Text(responseCode == 200 ||
-                                                    responseCode == 201
-                                                ? 'Order Updated Successfully'
-                                                : 'Error updating order: $responseCode'),
-                                          ),
-                                        );
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: Text(responseCode ==
+                                                            200 ||
+                                                        responseCode == 201
+                                                    ? 'Order Updated Successfully'
+                                                    : 'Error updating order: $responseCode'),
+                                              ),
+                                            );
 
-                                        // If the order is delivered, remove it from the list
-                                        if (newValue == 'Delivered') {
-                                          ordersProvider.orders.removeAt(index);
-                                          ordersProvider.notifyListeners();
+                                            if (newValue == 'Delivered') {
+                                              ordersProvider.orders
+                                                  .removeAt(index);
+                                              ordersProvider.notifyListeners();
+                                            }
+                                          }
                                         }
-                                      }
-                                    }
-                                  },
-                                  items: ordersProvider
-                                      .getAvailableOrderStatuses(ordersProvider
-                                          .orders[index].orderStatus)
-                                      .map((String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
+                                      },
+                                      items: ordersProvider
+                                          .getAvailableOrderStatuses(
+                                              ordersProvider
+                                                  .orders[index].orderStatus)
+                                          .map((String value) {
+                                        return DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        );
+                                      }).toList(),
+                                      style: GoogleFonts.roboto(
+                                        fontSize: 14,
+                                        color: Colors.grey[800],
+                                      ),
+                                      dropdownColor: Colors.white,
+                                      elevation: 4,
+                                      underline: Container(),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                            // Add more details as needed
                           ),
                         );
                       },

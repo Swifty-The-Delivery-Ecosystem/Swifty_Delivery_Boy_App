@@ -137,7 +137,7 @@ class _HomeState extends State<Home> {
                                       .toList(),
                                 ),
                                 SizedBox(height: 6),
-                                Divider(),         
+                                Divider(),
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
@@ -164,7 +164,48 @@ class _HomeState extends State<Home> {
                                       value: ordersProvider
                                           .orders[index].orderStatus,
                                       onChanged: (String? newValue) async {
-                                        // Your existing onChanged logic here...
+                                        if (newValue != null) {
+                                          ordersProvider.orders[index]
+                                              .orderStatus = newValue;
+                                          ordersProvider.notifyListeners();
+
+                                          if (newValue == 'Arrived' ||
+                                              newValue == 'Delivered') {
+                                            String orderId = ordersProvider
+                                                .orders[index].orderId;
+                                            String token = Provider.of<
+                                                        DeliveryBoyProvider>(
+                                                    context,
+                                                    listen: false)
+                                                .token;
+
+                                            int responseCode = await Provider
+                                                    .of<UpdateOrderProvider>(
+                                                        context,
+                                                        listen: false)
+                                                .updateOrder(
+                                                    orderId,
+                                                    newValue.toLowerCase(),
+                                                    token);
+
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: Text(responseCode ==
+                                                            200 ||
+                                                        responseCode == 201
+                                                    ? 'Order Updated Successfully'
+                                                    : 'Error updating order: $responseCode'),
+                                              ),
+                                            );
+
+                                            if (newValue == 'Delivered') {
+                                              ordersProvider.orders
+                                                  .removeAt(index);
+                                              ordersProvider.notifyListeners();
+                                            }
+                                          }
+                                        }
                                       },
                                       items: ordersProvider
                                           .getAvailableOrderStatuses(
@@ -190,7 +231,6 @@ class _HomeState extends State<Home> {
                             ),
                           ),
                         );
-
                       },
                     ),
                   );
